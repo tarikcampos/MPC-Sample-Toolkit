@@ -1,0 +1,10 @@
+# Contributing
+
+Thank you for your interest in contributing to MPCTK.
+
+If you would like to contribute, please:
+
+1. Open an issue describing the feature or bug.
+2. Discuss major changes before implementation.
+3. Keep code well documented.
+4. Add tests whenever possible.
