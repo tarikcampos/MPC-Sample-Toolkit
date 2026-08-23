@@ -219,3 +219,6 @@ __marimo__/
 
 # Local XPJ reverse-engineering research
 research/
+
+# macOS
+.DS_Store
