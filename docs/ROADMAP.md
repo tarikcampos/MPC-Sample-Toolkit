@@ -201,3 +201,22 @@ build/
 
 q
 eof
+
+### Sample Injection Foundation — Validated
+
+- WAV frame count can be read directly from the source audio.
+- Full-sample layer regions use zero-based inclusive bounds:
+  `Start = 0`, `End = frame_count - 1`.
+- Sample references can be created from a physical WAV instead of requiring
+  a pre-existing populated XPJ layer.
+- Sample entries are injected into both the project-level and track-level
+  sample pools.
+- Source layers can be populated with the WAV name, file reference, and
+  complete sample region.
+- Injected source layers can be used immediately by the existing bank
+  generation pipeline.
+- End-to-end physical validation completed successfully on MPC Sample:
+  WAV injection -> D natural minor Bank B generation -> XPJ load/playback.
+- MPC sample-pool metadata fields are currently reproduced from the observed
+  working project structure. The persisted `metadata.key` value is not treated
+  as authoritative musical pitch/key information.
