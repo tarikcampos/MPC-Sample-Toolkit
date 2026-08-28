@@ -2,6 +2,10 @@ from .bank import (
     build_bank_from_pad_address,
     build_bank_with_mpc_tuning,
 )
+from .package import (
+    generate_project_package,
+    project_data_directory_name,
+)
 from .pads import (
     BANK_NAMES,
     PADS_PER_BANK,
@@ -16,6 +20,8 @@ from .sample import (
 from .source import find_first_sample_instrument
 
 __all__ = [
+    "project_data_directory_name",
+    "generate_project_package",
     "BANK_NAMES",
     "PADS_PER_BANK",
     "build_bank_from_pad_address",

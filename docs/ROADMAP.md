@@ -220,3 +220,19 @@ eof
 - MPC sample-pool metadata fields are currently reproduced from the observed
   working project structure. The persisted `metadata.key` value is not treated
   as authoritative musical pitch/key information.
+
+### Project Package Generation — Validated
+
+- Complete MPC project packages can be generated automatically from a source
+  WAV, structural XPJ template, BankSpec, destination, and project name.
+- MPC project naming convention confirmed experimentally:
+  `Project.xpj` + `Project_[ProjectData]/`.
+- The source WAV is copied automatically into the generated ProjectData
+  directory.
+- WAV sample injection, musical bank generation, XPJ serialization, directory
+  creation, and audio-file copying are orchestrated by one high-level
+  operation.
+- Existing project files/directories are protected from accidental overwrite.
+- End-to-end physical validation completed successfully on MPC Sample:
+  generated XPJ + automatically generated ProjectData directory + copied WAV
+  loaded and played correctly without manual package preparation.
