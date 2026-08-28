@@ -56,6 +56,19 @@ Current estimated progress: ~74%.
 - Chromatic Keyboard and Scale Pads are separate layout concepts.
 - Scale Pad generation has been validated on MPC Sample hardware.
 
+### Bank specification and generation
+
+- A complete musical bank request can be represented by `BankSpec`.
+- Bank specifications support source root, target root, layout, pad count,
+  scale, and starting octave.
+- Chromatic Keyboard and Scale Pads can be selected by name.
+- Major and natural minor scales can be selected by name.
+- Musical specifications are converted into semitone offsets automatically.
+- The `generation` layer applies a musical specification to an MPC track.
+- MPC real-time tuning generation validates the hardware range before writing.
+- Musical specifications remain independent from the MPC tuning limit so that
+  future rendered-audio and hybrid strategies can execute wider ranges.
+
 ### Experimentally verified tuning limits
 
 MPC Sample:
@@ -68,20 +81,18 @@ of silently generating layouts that the MPC will clamp.
 
 ## Planned
 
-### Musical bank specification
+### Higher-level project generation
 
-Allow complete banks to be described through a higher-level specification
-rather than calling individual music and XPJ functions manually.
+Build complete MPC projects from user-facing configuration rather than
+requiring direct manipulation of tracks and XPJ objects.
 
-Remaining concepts:
+Remaining concepts include:
 
-- named scale selection
-- number of pads
-- octave/range strategy
-- layout selection
-- validation against the chosen tuning strategy
-
-The user should not need to manually calculate semitone offsets.
+- automatic source sample assignment
+- project/output configuration
+- bank placement
+- multi-bank generation
+- friendly validation and reporting
 
 ### Custom layouts
 
