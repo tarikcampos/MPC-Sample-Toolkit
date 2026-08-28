@@ -107,6 +107,17 @@ class Layer:
     def is_empty(self) -> bool:
         return self.sample.is_empty
 
+    def set_coarse_tune(self, semitones: int) -> None:
+        """Set the layer's coarse tuning in semitones."""
+        if isinstance(semitones, bool) or not isinstance(semitones, int):
+            raise TypeError("Coarse tune must be an integer")
+
+        self.coarse_tune = semitones
+        self.pitch = float(semitones)
+
+        self.raw_data["coarseTune"] = semitones
+        self.raw_data["pitch"] = float(semitones)
+
     @classmethod
     def from_dict(cls, data: Any) -> "Layer":
         if not isinstance(data, dict):

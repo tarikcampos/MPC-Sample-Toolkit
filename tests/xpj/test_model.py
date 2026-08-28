@@ -192,6 +192,70 @@ def test_slice_info_is_independent_from_sample_start():
     assert layer.slice_info.end == 1020144
 
 
+
+def test_layer_set_coarse_tune_updates_model_and_raw_data():
+    data = {
+        "pitch": 12.0,
+        "coarseTune": 12,
+    }
+
+    layer = Layer.from_dict(data)
+    layer.set_coarse_tune(7)
+
+    assert layer.coarse_tune == 7
+    assert layer.pitch == 7.0
+    assert layer.raw_data["coarseTune"] == 7
+    assert layer.raw_data["pitch"] == 7.0
+    assert data["coarseTune"] == 7
+    assert data["pitch"] == 7.0
+
+
+def test_layer_set_coarse_tune_rejects_non_integer():
+    layer = Layer.from_dict({})
+
+    with pytest.raises(TypeError, match="must be an integer"):
+        layer.set_coarse_tune(7.5)
+
+
+def test_project_layer_edit_updates_project_raw_data():
+    data = {
+        "data": {
+            "tracks": [
+                {
+                    "program": {
+                        "drum": {
+                            "instruments": [
+                                {
+                                    "layersv": [
+                                        {
+                                            "pitch": 12.0,
+                                            "coarseTune": 12,
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    }
+
+    project = XPJProject.from_dict(data)
+
+    layer = project.tracks[0].instruments[0].layers[0]
+    layer.set_coarse_tune(7)
+
+    raw_layer = (
+        project.raw_data["data"]["tracks"][0]
+        ["program"]["drum"]["instruments"][0]
+        ["layersv"][0]
+    )
+
+    assert raw_layer["coarseTune"] == 7
+    assert raw_layer["pitch"] == 7.0
+
+
 def test_empty_layer():
     layer = Layer.from_dict({})
 
