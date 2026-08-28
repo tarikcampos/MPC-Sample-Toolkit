@@ -7,6 +7,7 @@ from .model import (
     XPJProject,
 )
 from .reader import XPJReader
+from .writer import XPJWriter
 
 __all__ = [
     "Instrument",
@@ -16,5 +17,6 @@ __all__ = [
     "XPJHeader",
     "XPJProject",
     "XPJReader",
+    "XPJWriter",
     "parse_header",
 ]
