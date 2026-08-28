@@ -224,6 +224,49 @@ class Track:
 
         return cloned_layer
 
+    def build_chromatic_bank(
+        self,
+        source_instrument_index: int,
+        start_instrument_index: int,
+        pad_count: int,
+        start_semitone: int = 0,
+        layer_index: int = 0,
+    ) -> list[Layer]:
+        """Build a chromatic run across consecutive instruments."""
+        if pad_count <= 0:
+            raise ValueError("Pad count must be greater than zero")
+
+        end_instrument_index = start_instrument_index + pad_count
+
+        if source_instrument_index < 0 or source_instrument_index >= len(
+            self.instruments
+        ):
+            raise IndexError("Source instrument index is out of range")
+
+        if start_instrument_index < 0 or end_instrument_index > len(
+            self.instruments
+        ):
+            raise IndexError("Target instrument range is out of range")
+
+        generated_layers: list[Layer] = []
+
+        for offset, target_index in enumerate(
+            range(start_instrument_index, end_instrument_index)
+        ):
+            if target_index == source_instrument_index:
+                layer = self.instruments[target_index].layers[layer_index]
+            else:
+                layer = self.clone_layer(
+                    source_instrument_index=source_instrument_index,
+                    target_instrument_index=target_index,
+                    layer_index=layer_index,
+                )
+
+            layer.set_coarse_tune(start_semitone + offset)
+            generated_layers.append(layer)
+
+        return generated_layers
+
     @classmethod
     def from_dict(cls, data: Any) -> "Track":
         if not isinstance(data, dict):

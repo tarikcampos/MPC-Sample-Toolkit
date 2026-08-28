@@ -411,6 +411,134 @@ def test_track_clone_layer_uses_independent_nested_data():
 
 
 
+
+def test_track_build_chromatic_bank():
+    def layer(sample_name="", sample_file=""):
+        return {
+            "active": True,
+            "sampleName": sample_name,
+            "sampleFile": sample_file,
+            "pitch": 0.0,
+            "coarseTune": 0,
+            "sliceInfo": {
+                "Start": 0,
+                "End": 1000 if sample_name else 0,
+            },
+        }
+
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {"layersv": [layer("Kick", "Kick.wav")]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    generated = track.build_chromatic_bank(
+        source_instrument_index=0,
+        start_instrument_index=0,
+        pad_count=4,
+        start_semitone=-2,
+    )
+
+    assert len(generated) == 4
+
+    expected_tunes = [-2, -1, 0, 1]
+
+    for index, expected_tune in enumerate(expected_tunes):
+        layer = track.instruments[index].layers[0]
+
+        assert layer.sample.name == "Kick"
+        assert layer.sample.file == "Kick.wav"
+        assert layer.coarse_tune == expected_tune
+        assert layer.pitch == float(expected_tune)
+        assert layer.slice_info.end == 1000
+
+
+def test_track_build_chromatic_bank_can_start_after_source_pad():
+    def layer(sample_name="", sample_file=""):
+        return {
+            "sampleName": sample_name,
+            "sampleFile": sample_file,
+            "pitch": 0.0,
+            "coarseTune": 0,
+            "sliceInfo": {
+                "Start": 0,
+                "End": 1000 if sample_name else 0,
+            },
+        }
+
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {"layersv": [layer("Kick", "Kick.wav")]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    generated = track.build_chromatic_bank(
+        source_instrument_index=0,
+        start_instrument_index=1,
+        pad_count=3,
+        start_semitone=5,
+    )
+
+    assert [layer.coarse_tune for layer in generated] == [5, 6, 7]
+
+    assert track.instruments[0].layers[0].coarse_tune == 0
+    assert track.instruments[1].layers[0].sample.name == "Kick"
+    assert track.instruments[3].layers[0].coarse_tune == 7
+
+
+def test_track_build_chromatic_bank_rejects_invalid_pad_count():
+    track = Track()
+
+    with pytest.raises(ValueError, match="greater than zero"):
+        track.build_chromatic_bank(
+            source_instrument_index=0,
+            start_instrument_index=0,
+            pad_count=0,
+        )
+
+
+def test_track_build_chromatic_bank_rejects_out_of_range_targets():
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {"layersv": [{}]},
+                    {"layersv": [{}]},
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    with pytest.raises(IndexError, match="Target instrument range"):
+        track.build_chromatic_bank(
+            source_instrument_index=0,
+            start_instrument_index=1,
+            pad_count=2,
+        )
+
+
+
 def test_project_builds_instruments_and_layers():
     data = {
         "data": {
