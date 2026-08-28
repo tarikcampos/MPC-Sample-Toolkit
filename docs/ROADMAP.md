@@ -47,6 +47,15 @@ Current estimated progress: ~74%.
 - Scale intervals can be expanded across multiple octaves.
 - Arbitrary semitone layouts can be applied to MPC pads.
 
+### Musical roots and layouts
+
+- Musical note names are mapped to pitch classes.
+- Sharps, flats, and common enharmonic spellings are supported.
+- Source root and target root are handled separately.
+- Root transposition is converted into semitone offsets.
+- Chromatic Keyboard and Scale Pads are separate layout concepts.
+- Scale Pad generation has been validated on MPC Sample hardware.
+
 ### Experimentally verified tuning limits
 
 MPC Sample:
@@ -61,39 +70,18 @@ of silently generating layouts that the MPC will clamp.
 
 ### Musical bank specification
 
-Allow banks to be described musically rather than through raw semitone values.
+Allow complete banks to be described through a higher-level specification
+rather than calling individual music and XPJ functions manually.
 
-Concepts:
+Remaining concepts:
 
-- source root
-- target root
-- scale
+- named scale selection
 - number of pads
-- octave/range
-- layout
+- octave/range strategy
+- layout selection
+- validation against the chosen tuning strategy
 
 The user should not need to manually calculate semitone offsets.
-
-### Separate performance layouts
-
-#### Chromatic Keyboard
-
-Designed primarily for chromatic playing from an external MIDI keyboard.
-
-Example:
-
-C, C#, D, D#, E, F, F#, G, ...
-
-#### Scale Pads
-
-Designed primarily for melodic playing directly from MPC pads.
-
-Example in C major:
-
-C, D, E, F, G, A, B, C, ...
-
-These are separate musical use cases and should not be treated as the same
-bank-generation mode.
 
 ### Custom layouts
 
