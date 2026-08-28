@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -198,6 +199,30 @@ class Track:
 
     raw_data: dict[str, Any] = field(default_factory=dict)
     instruments: list[Instrument] = field(default_factory=list)
+
+    def clone_layer(
+        self,
+        source_instrument_index: int,
+        target_instrument_index: int,
+        layer_index: int = 0,
+    ) -> Layer:
+        """Clone one layer from one instrument to another."""
+        source_instrument = self.instruments[source_instrument_index]
+        target_instrument = self.instruments[target_instrument_index]
+
+        source_layer = source_instrument.layers[layer_index]
+
+        layers_data = target_instrument.raw_data.get("layersv")
+        if not isinstance(layers_data, list):
+            raise ValueError("Target instrument does not contain a layersv list")
+
+        cloned_data = deepcopy(source_layer.raw_data)
+        layers_data[layer_index] = cloned_data
+
+        cloned_layer = Layer.from_dict(cloned_data)
+        target_instrument.layers[layer_index] = cloned_layer
+
+        return cloned_layer
 
     @classmethod
     def from_dict(cls, data: Any) -> "Track":

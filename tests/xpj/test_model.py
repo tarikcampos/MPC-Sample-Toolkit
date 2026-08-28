@@ -305,6 +305,112 @@ def test_track_from_dict():
     assert track.instruments[0].layers[0].sample.file == "Kick.wav"
 
 
+
+def test_track_clone_layer_updates_target_and_raw_data():
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {
+                        "layersv": [
+                            {
+                                "sampleName": "Kick",
+                                "sampleFile": "Kick.wav",
+                                "pitch": 0.0,
+                                "coarseTune": 0,
+                                "sliceInfo": {
+                                    "Start": 0,
+                                    "End": 1000,
+                                },
+                            }
+                        ]
+                    },
+                    {
+                        "layersv": [
+                            {
+                                "sampleName": "",
+                                "sampleFile": "",
+                                "pitch": 0.0,
+                                "coarseTune": 0,
+                                "sliceInfo": {
+                                    "Start": 0,
+                                    "End": 0,
+                                },
+                            }
+                        ]
+                    },
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    cloned = track.clone_layer(0, 1)
+
+    assert cloned.sample.name == "Kick"
+    assert cloned.sample.file == "Kick.wav"
+    assert cloned.slice_info.end == 1000
+
+    raw_target = (
+        data["program"]["drum"]["instruments"][1]["layersv"][0]
+    )
+
+    assert raw_target["sampleName"] == "Kick"
+    assert raw_target["sampleFile"] == "Kick.wav"
+    assert raw_target["sliceInfo"]["End"] == 1000
+
+
+def test_track_clone_layer_uses_independent_nested_data():
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {
+                        "layersv": [
+                            {
+                                "sampleName": "Kick",
+                                "sampleFile": "Kick.wav",
+                                "sliceInfo": {
+                                    "Start": 0,
+                                    "End": 1000,
+                                },
+                            }
+                        ]
+                    },
+                    {
+                        "layersv": [
+                            {
+                                "sampleName": "",
+                                "sampleFile": "",
+                                "sliceInfo": {
+                                    "Start": 0,
+                                    "End": 0,
+                                },
+                            }
+                        ]
+                    },
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    cloned = track.clone_layer(0, 1)
+    cloned.raw_data["sliceInfo"]["End"] = 500
+
+    assert (
+        track.instruments[0].layers[0].raw_data["sliceInfo"]["End"]
+        == 1000
+    )
+    assert (
+        track.instruments[1].layers[0].raw_data["sliceInfo"]["End"]
+        == 500
+    )
+
+
+
 def test_project_builds_instruments_and_layers():
     data = {
         "data": {
