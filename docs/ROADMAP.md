@@ -3,21 +3,36 @@
 MPCTK is an open-source toolkit for creating, inspecting, editing, and
 organizing projects for the Akai MPC Sample.
 
-This roadmap records the current architectural direction of the project.
-Experimental ideas are intentionally separated from committed plans.
+This roadmap separates capabilities already validated on physical hardware
+from planned development and exploratory ideas.
 
 ## Current milestone
 
-### First usable MVP
+### First usable MVP — Validated
 
-Goal:
+The first usable MPCTK MVP is complete.
 
-> Take one or more WAV samples and generate or modify a valid MPC Sample
-> project that opens and works correctly on the hardware.
+Validated end-to-end capability:
 
-Current estimated progress: ~74%.
+```text
+WAV
+  -> CLI
+  -> musical specification
+  -> sample injection
+  -> pad-bank generation
+  -> XPJ serialization
+  -> ProjectData packaging
+  -> MPC Sample
+```
 
-## Validated foundations
+The generated package opens, loads, and plays correctly on physical MPC
+Sample hardware.
+
+The current MVP still uses an XPJ structural template. Removing or embedding
+that dependency is a post-MVP improvement rather than a blocker for the first
+usable workflow.
+
+## Validated
 
 ### XPJ format
 
@@ -66,20 +81,58 @@ Current estimated progress: ~74%.
 - Musical specifications are converted into semitone offsets automatically.
 - The `generation` layer applies a musical specification to an MPC track.
 - MPC real-time tuning generation validates the hardware range before writing.
-- Musical specifications remain independent from the MPC tuning limit so that
+- Musical specifications remain independent from the MPC tuning limit so
   future rendered-audio and hybrid strategies can execute wider ranges.
 
-### Project generation foundation
+### Project generation
 
 - MPC Bank A-H / Pad 1-16 addressing is supported.
 - Bank/pad addresses are translated into instrument indexes internally.
 - The first populated source sample can be discovered automatically.
 - Musical banks can be generated without exposing instrument indexes.
-- Complete XPJ projects can be generated from an existing template through
-  a single high-level operation.
-- Source templates are preserved while generated projects are written to a
-  separate output file.
+- Complete XPJ projects can be generated from an existing template.
+- Source templates are preserved while generated projects are written
+  separately.
 - High-level project generation has been validated on MPC Sample hardware.
+
+### Sample injection
+
+- WAV frame count can be read directly from source audio.
+- Full-sample layer regions use zero-based inclusive bounds:
+  `Start = 0`, `End = frame_count - 1`.
+- Sample references can be created from a physical WAV instead of requiring
+  a pre-existing populated XPJ layer.
+- Sample entries are injected into both project-level and track-level pools.
+- Source layers can be populated with the WAV name, file reference, and
+  complete sample region.
+- Injected source layers can immediately feed the bank-generation pipeline.
+- WAV injection through bank generation has been physically validated.
+- Persisted MPC `metadata.key` is not treated as authoritative musical
+  pitch/key information.
+
+### Project package generation
+
+- Complete MPC packages can be generated from a source WAV, structural XPJ
+  template, `BankSpec`, destination, and project name.
+- MPC package naming has been confirmed experimentally:
+  `Project.xpj` + `Project_[ProjectData]/`.
+- The source WAV is copied automatically into ProjectData.
+- Sample injection, bank generation, XPJ serialization, directory creation,
+  and WAV copying are orchestrated by one high-level operation.
+- Existing project files/directories are protected from accidental overwrite.
+- Automatically packaged projects have been physically validated.
+
+### User-facing generation workflow
+
+- MPCTK exposes the `mpctk` command-line entry point.
+- `mpctk generate` accepts a WAV, structural template, musical roots, layout,
+  scale, pad count, bank, starting pad, octave offset, project name, and
+  destination.
+- CLI input is translated into `BankSpec` and the validated generation
+  pipeline.
+- Scale Pads and Chromatic Keyboard are exposed through the CLI.
+- Complete project packages can be generated without writing Python scripts.
+- The real CLI workflow has been physically validated on MPC Sample hardware.
 
 ### Experimentally verified tuning limits
 
@@ -88,32 +141,49 @@ MPC Sample:
 - Coarse Tune: -24 to +24 semitones.
 - Fine Tune: -90 to +90.
 
-MPCTK rejects coarse-tune values outside the verified hardware range instead
-of silently generating layouts that the MPC will clamp.
+MPCTK rejects coarse-tune values outside the verified range instead of
+silently generating layouts that the MPC will clamp.
 
 ## Planned
 
-### User-facing project workflow
+### Remove the user-facing template dependency
 
-Move from template-oriented project generation toward a workflow that starts
-from user inputs rather than internal project objects.
+Move from a user-supplied structural XPJ template toward a self-contained
+generation workflow.
 
-Remaining concepts include:
+Possible implementation directions include:
 
-- source WAV handling
-- project/output configuration
-- automatic sample/project-data preparation
-- multi-bank generation
-- friendly validation and reporting
-- simple command-line or configuration-driven entry point
+- a neutral internal structural template;
+- programmatic creation of the required project structure;
+- validation of the minimum structure required by the hardware.
+
+### Multi-bank generation
+
+Allow one user-facing request to describe layouts spanning or targeting
+multiple MPC banks.
+
+### Friendly validation and reporting
+
+Improve user-facing errors and reporting around:
+
+- invalid musical specifications;
+- MPC tuning-range limits;
+- destination conflicts;
+- unsupported or invalid WAV files.
 
 ### Custom layouts
 
-Allow explicit or reusable musical layouts beyond chromatic and scale modes.
+Allow explicit or reusable musical layouts beyond the current chromatic and
+scale modes.
+
+### User-facing configuration
+
+Consider a reusable configuration-file format for generation requests in
+addition to CLI flags.
 
 ## Exploration
 
-The following ideas are promising but are not yet implementation commitments.
+The following ideas are promising but are not implementation commitments.
 
 ### Sample pitch and key analysis
 
@@ -121,20 +191,20 @@ Analyze source audio before building a bank.
 
 Possible capabilities:
 
-- fundamental/root-note estimation for monophonic samples
-- pitch-class analysis for polyphonic samples
-- chord estimation
-- key estimation
-- confidence values
-- manual confirmation/correction
+- fundamental/root-note estimation for monophonic samples;
+- pitch-class analysis for polyphonic samples;
+- chord estimation;
+- key estimation;
+- confidence values;
+- manual confirmation/correction.
 
-Detected musical information should be treated as an estimate rather than an
+Detected musical information should be treated as an estimate rather than
 absolute truth.
 
 ### Audio transposition
 
-MPCTK may eventually transpose/render WAV audio itself instead of relying
-entirely on MPC real-time tuning.
+MPCTK may eventually transpose/render WAV audio instead of relying entirely
+on MPC real-time tuning.
 
 Potential strategies:
 
@@ -154,117 +224,72 @@ MPC real-time tuning.
 The hybrid approach may provide a much larger playable range while avoiding
 one rendered WAV per note.
 
-Initial audio-transposition research should consider traditional sampler-style
-resampling before more complex pitch shifting with duration preservation.
+Initial research should consider traditional sampler-style resampling before
+more complex pitch shifting with duration preservation.
 
 ### Larger banks
 
 Extend musical layouts beyond 16 pads:
 
-- 32 pads
-- 48 pads
-- 64 pads
-- up to the MPC Sample's available pad/instrument capacity
+- 32 pads;
+- 48 pads;
+- 64 pads;
+- up to the MPC Sample's available pad/instrument capacity.
 
 This must account for hardware tuning limits and, if necessary, future
 render/hybrid transposition strategies.
 
-## Architecture direction
+### Additional musical generators
+
+Potential future generators include:
+
+- additional scales and modes;
+- chord layouts;
+- reusable performance layouts.
+
+These are not part of the validated MVP.
+
+### Project inspection and batch tooling
+
+Potential higher-level tooling includes:
+
+- project explorer functionality;
+- batch editing;
+- project comparison and reporting;
+- reusable editing operations.
+
+These remain post-MVP concepts.
+
+## Architecture
 
 ```text
 audio/
+    future WAV analysis
     future pitch/key analysis
     future resampling/transposition
 
 music/
     notes
-    intervals
     scales
     roots
-    musical transformations
+    musical layouts
+    BankSpec
 
-layouts/
-    future chromatic keyboard layouts
-    future scale pad layouts
-    future custom layouts
+generation/
+    pad addressing
+    sample injection
+    bank generation
+    project generation
+    project package generation
 
 xpj/
     MPC project representation
     layer cloning/editing
-    pad/instrument manipulation
     serialization
 
-build/
-    future orchestration from user specification to finished project
+cli.py
+    user-facing command-line workflow
+```
 
-
-
-q
-eof
-
-### Sample Injection Foundation — Validated
-
-- WAV frame count can be read directly from the source audio.
-- Full-sample layer regions use zero-based inclusive bounds:
-  `Start = 0`, `End = frame_count - 1`.
-- Sample references can be created from a physical WAV instead of requiring
-  a pre-existing populated XPJ layer.
-- Sample entries are injected into both the project-level and track-level
-  sample pools.
-- Source layers can be populated with the WAV name, file reference, and
-  complete sample region.
-- Injected source layers can be used immediately by the existing bank
-  generation pipeline.
-- End-to-end physical validation completed successfully on MPC Sample:
-  WAV injection -> D natural minor Bank B generation -> XPJ load/playback.
-- MPC sample-pool metadata fields are currently reproduced from the observed
-  working project structure. The persisted `metadata.key` value is not treated
-  as authoritative musical pitch/key information.
-
-### Project Package Generation — Validated
-
-- Complete MPC project packages can be generated automatically from a source
-  WAV, structural XPJ template, BankSpec, destination, and project name.
-- MPC project naming convention confirmed experimentally:
-  `Project.xpj` + `Project_[ProjectData]/`.
-- The source WAV is copied automatically into the generated ProjectData
-  directory.
-- WAV sample injection, musical bank generation, XPJ serialization, directory
-  creation, and audio-file copying are orchestrated by one high-level
-  operation.
-- Existing project files/directories are protected from accidental overwrite.
-- End-to-end physical validation completed successfully on MPC Sample:
-  generated XPJ + automatically generated ProjectData directory + copied WAV
-  loaded and played correctly without manual package preparation.
-
-### User-Facing Generation Workflow — Validated
-
-- MPCTK now exposes a command-line interface through the `mpctk` command.
-- The `generate` command accepts a source WAV, structural XPJ template,
-  musical roots, layout, scale, pad count, bank, starting pad, octave offset,
-  project name, and destination directory.
-- CLI input is translated into BankSpec and the existing high-level project
-  package generation pipeline.
-- Both scale-pad and chromatic-keyboard layouts are exposed through the CLI.
-- The command creates the complete MPC project package without requiring
-  Python scripts from the user.
-- End-to-end physical validation completed successfully on MPC Sample using
-  the real CLI:
-  WAV -> `mpctk generate` -> XPJ + ProjectData -> MPC load/playback.
-- This completes the first MPCTK MVP workflow.
-
-## MVP 1.0 Milestone — Validated
-
-The first usable MPCTK MVP is complete.
-
-Validated end-to-end capability:
-
-`WAV -> CLI -> musical specification -> sample injection -> pad-bank
-generation -> XPJ serialization -> ProjectData packaging -> MPC Sample`
-
-The generated package opens, loads, and plays correctly on physical MPC
-hardware.
-
-Current MVP still uses an XPJ structural template. Removing or embedding that
-template dependency is a post-MVP improvement rather than a blocker for the
-first usable version.
+The architecture intentionally separates musical intent from MPC-specific
+serialization and from higher-level project orchestration.
