@@ -236,3 +236,35 @@ eof
 - End-to-end physical validation completed successfully on MPC Sample:
   generated XPJ + automatically generated ProjectData directory + copied WAV
   loaded and played correctly without manual package preparation.
+
+### User-Facing Generation Workflow — Validated
+
+- MPCTK now exposes a command-line interface through the `mpctk` command.
+- The `generate` command accepts a source WAV, structural XPJ template,
+  musical roots, layout, scale, pad count, bank, starting pad, octave offset,
+  project name, and destination directory.
+- CLI input is translated into BankSpec and the existing high-level project
+  package generation pipeline.
+- Both scale-pad and chromatic-keyboard layouts are exposed through the CLI.
+- The command creates the complete MPC project package without requiring
+  Python scripts from the user.
+- End-to-end physical validation completed successfully on MPC Sample using
+  the real CLI:
+  WAV -> `mpctk generate` -> XPJ + ProjectData -> MPC load/playback.
+- This completes the first MPCTK MVP workflow.
+
+## MVP 1.0 Milestone — Validated
+
+The first usable MPCTK MVP is complete.
+
+Validated end-to-end capability:
+
+`WAV -> CLI -> musical specification -> sample injection -> pad-bank
+generation -> XPJ serialization -> ProjectData packaging -> MPC Sample`
+
+The generated package opens, loads, and plays correctly on physical MPC
+hardware.
+
+Current MVP still uses an XPJ structural template. Removing or embedding that
+template dependency is a post-MVP improvement rather than a blocker for the
+first usable version.
