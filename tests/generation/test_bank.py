@@ -144,3 +144,76 @@ def test_build_bank_with_mpc_tuning_rejects_negative_overflow():
             track,
             spec,
         )
+
+
+def test_build_bank_from_pad_address_finds_source_automatically():
+    from mpctk.generation import build_bank_from_pad_address
+
+    track = make_track(instrument_count=32)
+
+    spec = BankSpec(
+        source_root="C",
+        target_root="C",
+        layout=LAYOUT_SCALE_PADS,
+        scale="major",
+        pads=8,
+    )
+
+    generated = build_bank_from_pad_address(
+        track,
+        spec,
+        start_bank="B",
+        start_pad=1,
+    )
+
+    assert [layer.coarse_tune for layer in generated] == [
+        0,
+        2,
+        4,
+        5,
+        7,
+        9,
+        11,
+        12,
+    ]
+
+    for layer in generated:
+        assert layer.sample.name == "Sample"
+        assert layer.sample.file == "Sample.wav"
+
+    assert (
+        track.instruments[16].layers[0].sample.name
+        == "Sample"
+    )
+
+
+def test_build_bank_from_pad_address_starts_inside_bank():
+    from mpctk.generation import build_bank_from_pad_address
+
+    track = make_track(instrument_count=32)
+
+    spec = BankSpec(
+        source_root="C",
+        target_root="C",
+        layout=LAYOUT_CHROMATIC_KEYBOARD,
+        pads=4,
+    )
+
+    generated = build_bank_from_pad_address(
+        track,
+        spec,
+        start_bank="A",
+        start_pad=13,
+    )
+
+    assert [layer.coarse_tune for layer in generated] == [
+        0,
+        1,
+        2,
+        3,
+    ]
+
+    assert (
+        track.instruments[12].layers[0].sample.name
+        == "Sample"
+    )

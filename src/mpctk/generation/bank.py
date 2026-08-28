@@ -5,6 +5,9 @@ from mpctk.xpj.model import (
     COARSE_TUNE_MIN,
 )
 
+from .pads import pad_address_to_instrument_index
+from .source import find_first_sample_instrument
+
 
 def build_bank_with_mpc_tuning(
     track: Track,
@@ -31,5 +34,33 @@ def build_bank_with_mpc_tuning(
         source_instrument_index=source_instrument_index,
         start_instrument_index=start_instrument_index,
         semitone_offsets=offsets,
+        layer_index=layer_index,
+    )
+
+
+def build_bank_from_pad_address(
+    track: Track,
+    spec: BankSpec,
+    *,
+    start_bank: str = "A",
+    start_pad: int = 1,
+    layer_index: int = 0,
+) -> list[Layer]:
+    """Build a bank using MPC bank/pad addressing and automatic source discovery."""
+    source_instrument_index = find_first_sample_instrument(
+        track,
+        layer_index=layer_index,
+    )
+
+    start_instrument_index = pad_address_to_instrument_index(
+        start_bank,
+        start_pad,
+    )
+
+    return build_bank_with_mpc_tuning(
+        track,
+        spec,
+        source_instrument_index=source_instrument_index,
+        start_instrument_index=start_instrument_index,
         layer_index=layer_index,
     )

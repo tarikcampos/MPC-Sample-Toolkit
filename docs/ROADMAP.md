@@ -69,6 +69,18 @@ Current estimated progress: ~74%.
 - Musical specifications remain independent from the MPC tuning limit so that
   future rendered-audio and hybrid strategies can execute wider ranges.
 
+### Project generation foundation
+
+- MPC Bank A-H / Pad 1-16 addressing is supported.
+- Bank/pad addresses are translated into instrument indexes internally.
+- The first populated source sample can be discovered automatically.
+- Musical banks can be generated without exposing instrument indexes.
+- Complete XPJ projects can be generated from an existing template through
+  a single high-level operation.
+- Source templates are preserved while generated projects are written to a
+  separate output file.
+- High-level project generation has been validated on MPC Sample hardware.
+
 ### Experimentally verified tuning limits
 
 MPC Sample:
@@ -81,18 +93,19 @@ of silently generating layouts that the MPC will clamp.
 
 ## Planned
 
-### Higher-level project generation
+### User-facing project workflow
 
-Build complete MPC projects from user-facing configuration rather than
-requiring direct manipulation of tracks and XPJ objects.
+Move from template-oriented project generation toward a workflow that starts
+from user inputs rather than internal project objects.
 
 Remaining concepts include:
 
-- automatic source sample assignment
+- source WAV handling
 - project/output configuration
-- bank placement
+- automatic sample/project-data preparation
 - multi-bank generation
 - friendly validation and reporting
+- simple command-line or configuration-driven entry point
 
 ### Custom layouts
 
