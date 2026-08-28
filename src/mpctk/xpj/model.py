@@ -14,12 +14,94 @@ class SampleReference:
         return not self.name and not self.file
 
 
+# Observed MPC Sample slice-index sentinel values.
+#
+# 129 has been experimentally observed when the playable region is defined
+# by the Layer's own sliceInfo Start/End values.
+#
+# 128 is also legitimately produced by the MPC Sample, but its precise
+# semantics are not yet known.
+SLICE_INDEX_UNKNOWN_128 = 128
+SLICE_INDEX_LAYER_REGION = 129
+
+
+@dataclass
+class SliceInfo:
+    """Region and loop information persisted inside an XPJ layer."""
+
+    raw_data: dict[str, Any] = field(default_factory=dict)
+
+    start: int = 0
+    end: int = 0
+    loop_start: int = 0
+    loop_mode: int = 0
+    pulse_position: int = 0
+    loop_crossfade_length: int = 0
+    loop_crossfade_type: int = 0
+    tail_length: float = 0.0
+    tail_loop_position: float = 0.5
+
+    @classmethod
+    def from_dict(cls, data: Any) -> "SliceInfo":
+        if not isinstance(data, dict):
+            return cls()
+
+        return cls(
+            raw_data=data,
+            start=int(data.get("Start", 0)),
+            end=int(data.get("End", 0)),
+            loop_start=int(data.get("LoopStart", 0)),
+            loop_mode=int(data.get("LoopMode", 0)),
+            pulse_position=int(data.get("PulsePosition", 0)),
+            loop_crossfade_length=int(
+                data.get("LoopCrossfadeLength", 0)
+            ),
+            loop_crossfade_type=int(
+                data.get("LoopCrossfadeType", 0)
+            ),
+            tail_length=float(data.get("TailLength", 0.0)),
+            tail_loop_position=float(data.get("TailLoopPosition", 0.5)),
+        )
+
+
 @dataclass
 class Layer:
     """One sample layer belonging to an MPC instrument."""
 
     raw_data: dict[str, Any] = field(default_factory=dict)
+
+    active: bool = False
+    mute: bool = False
+
     sample: SampleReference = field(default_factory=SampleReference)
+
+    volume: dict[str, Any] = field(default_factory=dict)
+    pan: float = 0.5
+
+    pitch: float = 0.0
+    coarse_tune: int = 0
+    fine_tune: int = 0
+    root_note: int = 0
+    key_track_enable: bool = False
+
+    velocity_start: int = 0
+    velocity_end: int = 127
+
+    sample_start: int = 0
+    sample_end: int = 0
+
+    slice_index: int = SLICE_INDEX_LAYER_REGION
+    slice_info: SliceInfo = field(default_factory=SliceInfo)
+
+    direction: int = 0
+    offset: int = 0
+
+    loop: bool = False
+    loop_start: int = 0
+    loop_end: int = 0
+    loop_crossfade_length: int = 0
+    loop_fine_tune: int = 0
+    loop_mode: int = 0
 
     @property
     def is_empty(self) -> bool:
@@ -40,7 +122,34 @@ class Layer:
 
         return cls(
             raw_data=data,
+            active=bool(data.get("active", False)),
+            mute=bool(data.get("mute", False)),
             sample=sample,
+            volume=data.get("volume", {}),
+            pan=float(data.get("pan", 0.5)),
+            pitch=float(data.get("pitch", 0.0)),
+            coarse_tune=int(data.get("coarseTune", 0)),
+            fine_tune=int(data.get("fineTune", 0)),
+            root_note=int(data.get("rootNote", 0)),
+            key_track_enable=bool(data.get("keyTrackEnable", False)),
+            velocity_start=int(data.get("velocityStart", 0)),
+            velocity_end=int(data.get("velocityEnd", 127)),
+            sample_start=int(data.get("sampleStart", 0)),
+            sample_end=int(data.get("sampleEnd", 0)),
+            slice_index=int(
+                data.get("sliceIndex", SLICE_INDEX_LAYER_REGION)
+            ),
+            slice_info=SliceInfo.from_dict(data.get("sliceInfo")),
+            direction=int(data.get("direction", 0)),
+            offset=int(data.get("offset", 0)),
+            loop=bool(data.get("loop", False)),
+            loop_start=int(data.get("loopStart", 0)),
+            loop_end=int(data.get("loopEnd", 0)),
+            loop_crossfade_length=int(
+                data.get("loopCrossfadeLength", 0)
+            ),
+            loop_fine_tune=int(data.get("loopFineTune", 0)),
+            loop_mode=int(data.get("loopMode", 0)),
         )
 
 
