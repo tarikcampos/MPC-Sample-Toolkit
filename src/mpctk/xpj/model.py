@@ -25,6 +25,12 @@ class SampleReference:
 SLICE_INDEX_UNKNOWN_128 = 128
 SLICE_INDEX_LAYER_REGION = 129
 
+# Experimentally verified MPC Sample tuning limits.
+COARSE_TUNE_MIN = -24
+COARSE_TUNE_MAX = 24
+FINE_TUNE_MIN = -90
+FINE_TUNE_MAX = 90
+
 
 @dataclass
 class SliceInfo:
@@ -112,6 +118,12 @@ class Layer:
         """Set the layer's coarse tuning in semitones."""
         if isinstance(semitones, bool) or not isinstance(semitones, int):
             raise TypeError("Coarse tune must be an integer")
+
+        if semitones < COARSE_TUNE_MIN or semitones > COARSE_TUNE_MAX:
+            raise ValueError(
+                "Coarse tune must be between "
+                f"{COARSE_TUNE_MIN} and {COARSE_TUNE_MAX}"
+            )
 
         self.coarse_tune = semitones
         self.pitch = float(semitones)
@@ -224,6 +236,57 @@ class Track:
 
         return cloned_layer
 
+    def build_tuned_bank(
+        self,
+        source_instrument_index: int,
+        start_instrument_index: int,
+        semitone_offsets: list[int],
+        layer_index: int = 0,
+    ) -> list[Layer]:
+        """Build a bank using explicit semitone offsets."""
+        if not semitone_offsets:
+            raise ValueError("Semitone offsets must not be empty")
+
+        if any(
+            isinstance(offset, bool) or not isinstance(offset, int)
+            for offset in semitone_offsets
+        ):
+            raise TypeError("Semitone offsets must be integers")
+
+        if source_instrument_index < 0 or source_instrument_index >= len(
+            self.instruments
+        ):
+            raise IndexError("Source instrument index is out of range")
+
+        end_instrument_index = (
+            start_instrument_index + len(semitone_offsets)
+        )
+
+        if start_instrument_index < 0 or end_instrument_index > len(
+            self.instruments
+        ):
+            raise IndexError("Target instrument range is out of range")
+
+        generated_layers: list[Layer] = []
+
+        for offset, target_index in zip(
+            semitone_offsets,
+            range(start_instrument_index, end_instrument_index),
+        ):
+            if target_index == source_instrument_index:
+                layer = self.instruments[target_index].layers[layer_index]
+            else:
+                layer = self.clone_layer(
+                    source_instrument_index=source_instrument_index,
+                    target_instrument_index=target_index,
+                    layer_index=layer_index,
+                )
+
+            layer.set_coarse_tune(offset)
+            generated_layers.append(layer)
+
+        return generated_layers
+
     def build_chromatic_bank(
         self,
         source_instrument_index: int,
@@ -236,36 +299,19 @@ class Track:
         if pad_count <= 0:
             raise ValueError("Pad count must be greater than zero")
 
-        end_instrument_index = start_instrument_index + pad_count
+        semitone_offsets = list(
+            range(
+                start_semitone,
+                start_semitone + pad_count,
+            )
+        )
 
-        if source_instrument_index < 0 or source_instrument_index >= len(
-            self.instruments
-        ):
-            raise IndexError("Source instrument index is out of range")
-
-        if start_instrument_index < 0 or end_instrument_index > len(
-            self.instruments
-        ):
-            raise IndexError("Target instrument range is out of range")
-
-        generated_layers: list[Layer] = []
-
-        for offset, target_index in enumerate(
-            range(start_instrument_index, end_instrument_index)
-        ):
-            if target_index == source_instrument_index:
-                layer = self.instruments[target_index].layers[layer_index]
-            else:
-                layer = self.clone_layer(
-                    source_instrument_index=source_instrument_index,
-                    target_instrument_index=target_index,
-                    layer_index=layer_index,
-                )
-
-            layer.set_coarse_tune(start_semitone + offset)
-            generated_layers.append(layer)
-
-        return generated_layers
+        return self.build_tuned_bank(
+            source_instrument_index=source_instrument_index,
+            start_instrument_index=start_instrument_index,
+            semitone_offsets=semitone_offsets,
+            layer_index=layer_index,
+        )
 
     @classmethod
     def from_dict(cls, data: Any) -> "Track":

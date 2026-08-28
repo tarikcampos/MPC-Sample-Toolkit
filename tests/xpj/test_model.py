@@ -210,6 +210,28 @@ def test_layer_set_coarse_tune_updates_model_and_raw_data():
     assert data["pitch"] == 7.0
 
 
+
+def test_layer_set_coarse_tune_accepts_hardware_limits():
+    layer = Layer.from_dict({})
+
+    layer.set_coarse_tune(-24)
+    assert layer.coarse_tune == -24
+
+    layer.set_coarse_tune(24)
+    assert layer.coarse_tune == 24
+
+
+def test_layer_set_coarse_tune_rejects_out_of_range():
+    layer = Layer.from_dict({})
+
+    with pytest.raises(ValueError, match="between -24 and 24"):
+        layer.set_coarse_tune(25)
+
+    with pytest.raises(ValueError, match="between -24 and 24"):
+        layer.set_coarse_tune(-25)
+
+
+
 def test_layer_set_coarse_tune_rejects_non_integer():
     layer = Layer.from_dict({})
 
@@ -409,6 +431,122 @@ def test_track_clone_layer_uses_independent_nested_data():
         == 500
     )
 
+
+
+
+
+def test_track_build_tuned_bank_with_explicit_offsets():
+    def layer(sample_name="", sample_file=""):
+        return {
+            "active": True,
+            "sampleName": sample_name,
+            "sampleFile": sample_file,
+            "pitch": 0.0,
+            "coarseTune": 0,
+            "sliceInfo": {
+                "Start": 0,
+                "End": 1000 if sample_name else 0,
+            },
+        }
+
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {"layersv": [layer("Kick", "Kick.wav")]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    generated = track.build_tuned_bank(
+        source_instrument_index=0,
+        start_instrument_index=0,
+        semitone_offsets=[-5, -2, 0, 7],
+    )
+
+    assert [layer.coarse_tune for layer in generated] == [
+        -5,
+        -2,
+        0,
+        7,
+    ]
+
+    for layer in generated:
+        assert layer.sample.name == "Kick"
+        assert layer.sample.file == "Kick.wav"
+        assert layer.slice_info.end == 1000
+
+
+def test_track_build_tuned_bank_supports_source_outside_target_range():
+    def layer(sample_name="", sample_file=""):
+        return {
+            "sampleName": sample_name,
+            "sampleFile": sample_file,
+            "pitch": 0.0,
+            "coarseTune": 0,
+        }
+
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {"layersv": [layer("Kick", "Kick.wav")]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                    {"layersv": [layer()]},
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    generated = track.build_tuned_bank(
+        source_instrument_index=0,
+        start_instrument_index=1,
+        semitone_offsets=[2, 4, 7],
+    )
+
+    assert [layer.coarse_tune for layer in generated] == [2, 4, 7]
+    assert track.instruments[0].layers[0].coarse_tune == 0
+
+
+def test_track_build_tuned_bank_rejects_empty_offsets():
+    track = Track()
+
+    with pytest.raises(ValueError, match="must not be empty"):
+        track.build_tuned_bank(
+            source_instrument_index=0,
+            start_instrument_index=0,
+            semitone_offsets=[],
+        )
+
+
+def test_track_build_tuned_bank_rejects_non_integer_offsets():
+    data = {
+        "program": {
+            "drum": {
+                "instruments": [
+                    {"layersv": [{}]},
+                ]
+            }
+        }
+    }
+
+    track = Track.from_dict(data)
+
+    with pytest.raises(TypeError, match="must be integers"):
+        track.build_tuned_bank(
+            source_instrument_index=0,
+            start_instrument_index=0,
+            semitone_offsets=[0.5],
+        )
 
 
 
