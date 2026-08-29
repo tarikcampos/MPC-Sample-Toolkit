@@ -176,67 +176,157 @@ class MainWindow(QMainWindow):
         # Musical layout
         root_layout.addWidget(self._section_heading("MUSICAL LAYOUT"))
 
-        music_form = QGridLayout()
-        music_form.setHorizontalSpacing(22)
-        music_form.setVerticalSpacing(10)
-        music_form.setColumnMinimumWidth(0, 280)
-        music_form.setColumnStretch(2, 1)
-        root_layout.addLayout(music_form)
+        music_panel = QWidget()
+        music_panel.setObjectName("musicPanel")
+        music_panel.setStyleSheet(
+            "QWidget#musicPanel {"
+            "background: #303030;"
+            "border: 1px solid #505050;"
+            "border-radius: 8px;"
+            "}"
+        )
+
+        music_panel_layout = QGridLayout(music_panel)
+        music_panel_layout.setContentsMargins(24, 18, 24, 20)
+        music_panel_layout.setHorizontalSpacing(42)
+        music_panel_layout.setVerticalSpacing(10)
+        music_panel_layout.setColumnStretch(0, 1)
+        music_panel_layout.setColumnStretch(1, 1)
+
+        musical_heading = QLabel("MUSICAL SETUP")
+        musical_heading.setStyleSheet(
+            "font-size: 10px; font-weight: 700; color: #aaaaaa;"
+        )
+        music_panel_layout.addWidget(musical_heading, 0, 0)
+
+        pad_heading = QLabel("PAD BANK")
+        pad_heading.setStyleSheet(
+            "font-size: 10px; font-weight: 700; color: #aaaaaa;"
+        )
+        music_panel_layout.addWidget(pad_heading, 0, 1)
+
+        left_grid = QGridLayout()
+        left_grid.setHorizontalSpacing(14)
+        left_grid.setVerticalSpacing(9)
+        left_grid.setColumnStretch(1, 1)
+
+        right_grid = QGridLayout()
+        right_grid.setHorizontalSpacing(14)
+        right_grid.setVerticalSpacing(9)
+        right_grid.setColumnStretch(1, 1)
 
         self.source_root_combo = QComboBox()
         self.source_root_combo.addItems(NOTE_NAMES)
-        self.source_root_combo.setMaximumWidth(220)
-        music_form.addWidget(QLabel("Source Root"), 0, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.source_root_combo, 0, 1)
+        self.source_root_combo.setMinimumWidth(160)
+
+        left_grid.addWidget(
+            QLabel("Source Root"),
+            0,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        left_grid.addWidget(self.source_root_combo, 0, 1)
 
         self.target_root_combo = QComboBox()
         self.target_root_combo.addItems(NOTE_NAMES)
-        self.target_root_combo.setMaximumWidth(220)
-        music_form.addWidget(QLabel("Target Root"), 1, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.target_root_combo, 1, 1)
+        self.target_root_combo.setMinimumWidth(160)
+
+        left_grid.addWidget(
+            QLabel("Target Root"),
+            1,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        left_grid.addWidget(self.target_root_combo, 1, 1)
 
         self.layout_combo = QComboBox()
         self.layout_combo.addItems(LAYOUTS)
-        self.layout_combo.setMaximumWidth(260)
+        self.layout_combo.setMinimumWidth(160)
         self.layout_combo.currentTextChanged.connect(
             self._update_layout_controls
         )
-        music_form.addWidget(QLabel("Layout"), 2, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.layout_combo, 2, 1)
+
+        left_grid.addWidget(
+            QLabel("Layout"),
+            2,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        left_grid.addWidget(self.layout_combo, 2, 1)
 
         self.scale_combo = QComboBox()
         self.scale_combo.addItems(SCALES)
-        self.scale_combo.setMaximumWidth(260)
-        music_form.addWidget(QLabel("Scale"), 3, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.scale_combo, 3, 1)
+        self.scale_combo.setMinimumWidth(160)
+
+        left_grid.addWidget(
+            QLabel("Scale"),
+            3,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        left_grid.addWidget(self.scale_combo, 3, 1)
 
         self.pads_spin = QSpinBox()
         self.pads_spin.setRange(1, 128)
-        self.pads_spin.setMaximumWidth(140)
+        self.pads_spin.setMinimumWidth(130)
         self.pads_spin.setValue(16)
-        music_form.addWidget(QLabel("Pads"), 4, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.pads_spin, 4, 1)
+
+        right_grid.addWidget(
+            QLabel("Pads"),
+            0,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        right_grid.addWidget(self.pads_spin, 0, 1)
 
         self.bank_combo = QComboBox()
         self.bank_combo.addItems(BANK_NAMES)
-        self.bank_combo.setMaximumWidth(140)
-        music_form.addWidget(QLabel("Start Bank"), 5, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.bank_combo, 5, 1)
+        self.bank_combo.setMinimumWidth(130)
+
+        right_grid.addWidget(
+            QLabel("Start Bank"),
+            1,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        right_grid.addWidget(self.bank_combo, 1, 1)
 
         self.start_pad_spin = QSpinBox()
         self.start_pad_spin.setRange(1, 16)
-        self.start_pad_spin.setMaximumWidth(140)
+        self.start_pad_spin.setMinimumWidth(130)
         self.start_pad_spin.setValue(1)
-        music_form.addWidget(QLabel("Start Pad"), 6, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.start_pad_spin, 6, 1)
+
+        right_grid.addWidget(
+            QLabel("Start Pad"),
+            2,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        right_grid.addWidget(self.start_pad_spin, 2, 1)
 
         self.start_octave_spin = QSpinBox()
         self.start_octave_spin.setRange(-8, 8)
-        self.start_octave_spin.setMaximumWidth(140)
+        self.start_octave_spin.setMinimumWidth(130)
         self.start_octave_spin.setValue(0)
-        music_form.addWidget(QLabel("Start Octave"), 7, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        music_form.addWidget(self.start_octave_spin, 7, 1)
 
+        right_grid.addWidget(
+            QLabel("Start Octave"),
+            3,
+            0,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        right_grid.addWidget(self.start_octave_spin, 3, 1)
+
+        left_widget = QWidget()
+        left_widget.setLayout(left_grid)
+
+        right_widget = QWidget()
+        right_widget.setLayout(right_grid)
+
+        music_panel_layout.addWidget(left_widget, 1, 0)
+        music_panel_layout.addWidget(right_widget, 1, 1)
+
+        root_layout.addWidget(music_panel)
         root_layout.addSpacing(12)
 
         # Output
@@ -264,9 +354,24 @@ class MainWindow(QMainWindow):
         root_layout.addSpacing(14)
 
         self.generate_button = QPushButton("Generate Project")
-        self.generate_button.setFixedSize(280, 46)
+        self.generate_button.setFixedSize(300, 48)
         self.generate_button.setStyleSheet(
-            "font-size: 14px; font-weight: 600;"
+            "QPushButton {"
+            "background: #b9782d;"
+            "color: #ffffff;"
+            "border: 1px solid #cf9148;"
+            "border-radius: 7px;"
+            "font-size: 14px;"
+            "font-weight: 700;"
+            "}"
+            "QPushButton:hover {"
+            "background: #c88735;"
+            "}"
+            "QPushButton:disabled {"
+            "background: #666666;"
+            "color: #bdbdbd;"
+            "border-color: #747474;"
+            "}"
         )
         self.generate_button.clicked.connect(self._generate_project)
 
@@ -276,16 +381,35 @@ class MainWindow(QMainWindow):
         generate_row.addStretch()
         root_layout.addLayout(generate_row)
 
+        root_layout.addSpacing(5)
+
+        result_panel = QWidget()
+        result_panel.setObjectName("resultPanel")
+        result_panel.setStyleSheet(
+            "QWidget#resultPanel {"
+            "background: #303030;"
+            "border: 1px solid #505050;"
+            "border-radius: 8px;"
+            "}"
+        )
+
+        result_layout = QHBoxLayout(result_panel)
+        result_layout.setContentsMargins(16, 11, 12, 11)
+        result_layout.setSpacing(14)
+
         self.status_label = QLabel("Ready.")
         self.status_label.setWordWrap(True)
-        self.status_label.setMinimumHeight(42)
-        root_layout.addWidget(self.status_label)
+        self.status_label.setMinimumHeight(36)
+        self.status_label.setStyleSheet("color: #bdbdbd;")
+        result_layout.addWidget(self.status_label, 1)
 
         self.open_finder_button = QPushButton("Open in Finder")
-        self.open_finder_button.setMinimumHeight(36)
+        self.open_finder_button.setMinimumSize(145, 36)
         self.open_finder_button.setEnabled(False)
         self.open_finder_button.clicked.connect(self._open_in_finder)
-        root_layout.addWidget(self.open_finder_button)
+        result_layout.addWidget(self.open_finder_button)
+
+        root_layout.addWidget(result_panel)
 
     def _section_heading(self, text: str) -> QLabel:
         label = QLabel(text)
