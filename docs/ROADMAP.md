@@ -134,6 +134,42 @@ usable workflow.
 - Complete project packages can be generated without writing Python scripts.
 - The real CLI workflow has been physically validated on MPC Sample hardware.
 
+### Graphical application
+
+- MPCTK exposes a native graphical workflow built with PySide6.
+- Source WAV, XPJ template, musical configuration, project name, and
+  destination can be selected without using the command line.
+- The GUI reuses the existing validated `BankSpec` and project-package
+  generation pipeline rather than duplicating generation logic.
+- GUI-generated projects have been successfully loaded and played on physical
+  MPC Sample hardware.
+
+### macOS application
+
+- MPCTK can be packaged as `MPC Sample Toolkit.app` with PyInstaller.
+- The application launches directly from Finder without requiring a Terminal
+  session.
+- PySide6 and the MPCTK generation engine are bundled into the application.
+- File and directory selection works from the packaged application.
+- The complete packaged-app workflow has been physically validated:
+  `Finder -> GUI -> XPJ + ProjectData -> MPC Sample`.
+- Generated build, dist, and PyInstaller spec artifacts remain outside
+  version control.
+
+### GUI workflow and visual foundation
+
+- Generation success, failure, and working states are presented in the GUI.
+- The Generate action is protected against duplicate activation while a
+  project is being created.
+- Source, template, and destination selectors remember their most recently
+  used directories.
+- Generated projects can be revealed directly in Finder.
+- The interface separates `Musical Setup` from `Pad Bank` configuration.
+- A dedicated result panel and primary Generate action establish the initial
+  visual hierarchy.
+- The current visual direction is evolving toward an MPC companion-tool
+  workflow rather than a generic configuration form.
+
 ### Experimentally verified tuning limits
 
 MPC Sample:
@@ -156,6 +192,22 @@ Possible implementation directions include:
 - a neutral internal structural template;
 - programmatic creation of the required project structure;
 - validation of the minimum structure required by the hardware.
+
+### Interactive 4x4 Pad Bank
+
+Represent the generated MPC bank visually as a 4x4 pad surface.
+
+Initial goals include:
+
+- previewing pad assignments before project generation;
+- displaying pad number and generated musical note/tuning information;
+- updating the preview when musical settings change;
+- selecting and inspecting individual pads;
+- keeping the visual pad model driven by `BankSpec` rather than duplicating
+  musical-generation logic.
+
+The pad surface should also provide a reusable UI foundation for future MIDI
+and connected-hardware experiments.
 
 ### Multi-bank generation
 
@@ -184,6 +236,25 @@ addition to CLI flags.
 ## Exploration
 
 The following ideas are promising but are not implementation commitments.
+
+### Connected MPC mode
+
+Investigate using the MPC Sample as connected hardware rather than only as the
+destination for generated project files.
+
+Research areas include:
+
+- detecting the MPC Sample as a USB/MIDI device;
+- receiving physical MPC pad events in MPCTK;
+- reflecting hardware pad activity on the graphical 4x4 pad surface;
+- sending MIDI note events from MPCTK pads to the MPC;
+- auditioning samples through a connected workflow where technically
+  supported;
+- determining which capabilities are available through standard MIDI/USB and
+  which, if any, would require MPC-specific communication.
+
+This remains exploratory until the hardware communication paths are verified
+experimentally.
 
 ### Sample pitch and key analysis
 
@@ -286,6 +357,10 @@ xpj/
     MPC project representation
     layer cloning/editing
     serialization
+
+gui/
+    graphical project-generation workflow
+    future interactive pad surface
 
 cli.py
     user-facing command-line workflow
