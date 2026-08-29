@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSettings, Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
@@ -386,6 +386,18 @@ class MainWindow(QMainWindow):
             start_octave=self.start_octave_spin.value(),
         )
 
+    def _set_status(self, text: str, state: str = "neutral") -> None:
+        colors = {
+            "neutral": "#f2f2f2",
+            "working": "#d8d8d8",
+            "success": "#8fd694",
+            "error": "#ff9a9a",
+        }
+        self.status_label.setStyleSheet(
+            f"color: {colors.get(state, colors["neutral"])};"
+        )
+        self.status_label.setText(text)
+
     def _generate_project(self) -> None:
         self.open_finder_button.setEnabled(False)
         self.generated_project_path = None
@@ -396,16 +408,17 @@ class MainWindow(QMainWindow):
         output_text = self.output_edit.text().strip()
 
         if not source_wav_text:
-            self.status_label.setText("Source WAV is required.")
+            self._set_status("Source WAV is required.", "error")
             return
 
         if not template_text:
-            self.status_label.setText("XPJ template is required.")
+            self._set_status("XPJ template is required.", "error")
             return
 
         if not output_text:
-            self.status_label.setText(
-                "Destination directory is required."
+            self._set_status(
+                "Destination directory is required.",
+                "error",
             )
             return
 
