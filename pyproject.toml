@@ -17,8 +17,13 @@ dependencies = []
 
 [project.scripts]
 mpctk = "mpctk.cli:main"
+mpctk-gui = "mpctk.gui.app:main"
 
 [project.optional-dependencies]
+gui = [
+    "PySide6>=6.8",
+]
+
 dev = [
     "pytest>=8.0"
 ]
