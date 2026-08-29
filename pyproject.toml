@@ -23,6 +23,9 @@ mpctk-gui = "mpctk.gui.app:main"
 gui = [
     "PySide6>=6.8",
 ]
+app = [
+    "PyInstaller>=6.0",
+]
 
 dev = [
     "pytest>=8.0"
