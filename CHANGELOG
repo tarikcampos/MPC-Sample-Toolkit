@@ -1,5 +1,45 @@
 # Changelog
 
+## Unreleased
+
+### Graphical application and macOS workflow
+
+- Added a native PySide6 project-generation GUI.
+- Added Source WAV, XPJ template, musical layout, root, scale, pad-bank, project-name, and destination controls.
+- Reused the validated `BankSpec` and project-package generation pipeline from the graphical workflow.
+- Added GUI working, success, and error states.
+- Added remembered browse locations and reveal-in-Finder support.
+- Refined the GUI into separate Musical Setup and Pad Bank sections.
+- Added PyInstaller-based macOS application packaging and a package-aware GUI launcher.
+- Validated the Finder-launched `.app` generation workflow on physical MPC Sample hardware.
+- Automated test suite reached 146 passing tests at the latest validated development checkpoint.
+
+### User-facing project generation
+
+- Added the `mpctk` command-line entry point and `mpctk generate` workflow.
+- Added complete project-package generation from a source WAV, structural XPJ template, `BankSpec`, destination, and project name.
+- Added automatic ProjectData directory creation and source-WAV copying.
+- Added MPC Bank A-H / Pad 1-16 addressing and automatic source-sample discovery.
+- Added WAV sample injection into project and track sample pools.
+- Validated generated packages on physical MPC Sample hardware.
+
+### Musical generation
+
+- Added chromatic bank generation.
+- Added major and natural minor Scale Pad generation.
+- Added musical root parsing, enharmonic note support, and source-to-target root transposition.
+- Added `BankSpec` as the high-level musical bank specification.
+- Added Chromatic Keyboard and Scale Pads layout concepts.
+- Added verified MPC coarse-tuning range enforcement.
+
+### XPJ foundation
+
+- Added gzip-compressed XPJ reading and writing.
+- Added structured project, track, instrument, layer, sample-reference, and slice models.
+- Added preservation of unknown XPJ fields through `raw_data`.
+- Added layer coarse-tune editing and cloning.
+- Validated written and edited XPJ projects on physical MPC Sample hardware.
+
 ## v0.1.0-alpha
 
 - Initial repository structure.
