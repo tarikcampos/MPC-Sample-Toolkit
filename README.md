@@ -1,43 +1,47 @@
 # MPC Sample Toolkit (MPCTK)
 
-MPCTK is an open-source Python toolkit for creating, inspecting, editing, and
-generating projects for the Akai MPC Sample.
+MPCTK is an open-source Python toolkit and desktop application for creating, inspecting, editing, and generating projects for the Akai MPC Sample.
 
-The first usable MVP has been validated end-to-end on physical MPC Sample
-hardware.
+The current workflow has been validated end-to-end on physical MPC Sample hardware: a source WAV can be turned into a playable MPC project from either the command line or the graphical macOS application.
 
-## Current capabilities
+## Current status
 
-MPCTK can:
+**First usable MVP: validated.**
 
-- read gzip-compressed `.xpj` projects;
-- preserve and write MPC project data;
-- edit layer coarse tuning;
-- clone sample layers between pads;
-- generate chromatic pad banks;
-- generate major and natural minor scale-pad layouts;
-- transpose layouts from a source root to a target root;
-- inject a WAV into an MPC project;
-- create the required `_[ProjectData]` directory automatically;
-- copy the source WAV into the generated project package;
-- generate a complete MPC project from the command line.
+MPCTK currently provides:
 
-Generated projects have been successfully loaded and played on physical
-MPC Sample hardware.
+- gzip-compressed `.xpj` project reading and writing;
+- structured project, track, instrument, layer, sample, and slice models;
+- preservation of unknown XPJ fields while editing known data;
+- coarse-tune editing and layer cloning;
+- chromatic pad-bank generation;
+- major and natural minor Scale Pad layouts;
+- source-root to target-root transposition;
+- MPC Bank A-H / Pad 1-16 addressing;
+- WAV injection into MPC projects;
+- automatic `_[ProjectData]` package creation and WAV copying;
+- complete project generation through the `mpctk` CLI;
+- a native PySide6 graphical generation workflow;
+- a Finder-launchable macOS `.app` packaged with PyInstaller;
+- GUI generation status, remembered browse locations, and reveal-in-Finder workflow.
+
+Generated projects from both the CLI and graphical application have been successfully loaded and played on physical MPC Sample hardware.
+
+The current automated test suite contains **146 passing tests** at the latest validated development checkpoint.
 
 ## Requirements
 
-- Python 3.11 or newer
-- An XPJ structural template
-- A WAV source sample
+For development/source use:
 
-The current MVP uses an existing XPJ file as a structural template. Removing
-or embedding this dependency is planned as a post-MVP improvement.
+- Python 3.11 or newer;
+- an XPJ structural template;
+- a WAV source sample.
+
+The current generation workflow still uses an existing XPJ file as a structural template. Removing the user-facing template dependency is the next planned development milestone.
 
 ## Installation
 
-Clone the repository, enter the project directory, create a virtual
-environment, and install MPCTK in editable mode:
+Clone the repository, enter the project directory, create a virtual environment, and install MPCTK in editable mode:
 
 ```bash
 python3 -m venv .venv
@@ -52,10 +56,40 @@ python -m pip install -e ".[dev]"
 pytest -q
 ```
 
-## Generate an MPC project
+For the graphical application:
 
-Example: generate 16 pads of D natural minor from a sample whose musical root
-is C, beginning on MPC Bank B Pad 1:
+```bash
+python -m pip install -e ".[gui]"
+mpctk-gui
+```
+
+For macOS application packaging, install the app dependencies:
+
+```bash
+python -m pip install -e ".[app]"
+```
+
+## Graphical workflow
+
+The PySide6 GUI exposes the validated generation pipeline without requiring CLI commands.
+
+Current controls include:
+
+- Source WAV;
+- XPJ structural template;
+- Source Root and Target Root;
+- Scale Pads or Chromatic Keyboard layout;
+- Major or Natural Minor scale;
+- pad count, starting bank, starting pad, and starting octave;
+- project name and destination.
+
+The interface separates **Musical Setup** from **Pad Bank** configuration and provides generation progress, success/error feedback, and direct reveal-in-Finder access after a successful build.
+
+The GUI reuses the same `BankSpec` and package-generation engine as the CLI rather than duplicating the musical or XPJ logic.
+
+## Generate an MPC project from the CLI
+
+Example: generate 16 pads of D natural minor from a sample whose musical root is C, beginning on MPC Bank B Pad 1:
 
 ```bash
 mpctk generate \
@@ -87,7 +121,7 @@ The resulting pair can be transferred to the MPC Sample.
 
 ### Scale Pads
 
-Available CLI scales:
+Currently implemented scales:
 
 - `major`
 - `natural-minor`
@@ -106,45 +140,61 @@ Generates consecutive chromatic semitone offsets:
 --layout chromatic-keyboard
 ```
 
-This layout is useful when pads are mapped for chromatic playing, including
-controller-oriented workflows.
+This layout is useful for chromatic playing and controller-oriented workflows.
 
 ## Hardware tuning limits
 
 Experimentally verified on the MPC Sample:
 
-- Coarse Tune: `-24` to `+24` semitones
-- Fine Tune: `-90` to `+90`
+- Coarse Tune: `-24` to `+24` semitones;
+- Fine Tune: `-90` to `+90`.
 
-The current generation strategy uses MPC real-time coarse tuning. MPCTK
-rejects banks outside the verified coarse-tuning range rather than relying on
-the hardware to silently clamp values.
+The current generation strategy uses MPC real-time coarse tuning. MPCTK rejects banks outside the verified coarse-tuning range instead of relying on the hardware to silently clamp values.
 
-## MVP limitations
+## Architecture
 
-The current MVP intentionally has a narrow scope:
+MPCTK deliberately separates musical intent from MPC-specific representation and project orchestration:
+
+```text
+music/       notes, scales, roots, layouts, BankSpec
+    ↓
+generation/  pad addressing, sample injection, bank/project/package generation
+    ↓
+xpj/         MPC project representation, editing, serialization
+
+cli.py        command-line workflow
+gui/          graphical project-generation workflow
+```
+
+This separation also leaves room for future rendered/hybrid audio transposition and connected-hardware workflows without coupling them to XPJ serialization.
+
+## Current limitations
 
 - project generation still requires an XPJ structural template;
-- generation currently uses MPC real-time tuning rather than rendered
-  transposed WAVs;
-- CLI scale choices are currently major and natural minor;
+- generation currently uses MPC real-time tuning rather than rendered transposed WAVs;
+- implemented scale choices are currently major and natural minor;
 - automatic pitch/root detection is not implemented;
-- multi-bank project requests are not yet exposed as one user-facing
-  specification;
-- graphical interfaces are not part of the MVP.
+- multi-bank project requests are not yet exposed as one user-facing specification;
+- the macOS application has been validated locally but is not yet a signed/notarized public distribution.
 
-These are post-MVP development areas, not requirements for the validated
-first workflow.
+## Planned development
 
-## Project status
+The current roadmap prioritizes:
 
-**First usable MVP: validated.**
+1. **Template Independence** — remove the user-facing XPJ template requirement;
+2. **Interactive 4x4 Pad Bank** — preview generated pad assignments visually from `BankSpec`;
+3. **Multi-Bank Generation** — extend one request across multiple MPC banks;
+4. further validation, custom layouts, and release/portfolio polish.
 
-Validated end-to-end workflow:
+Exploratory work includes MPC USB/MIDI connectivity, physical-pad/GUI interaction, sample pitch/key analysis, audio transposition strategies, larger banks, additional musical generators, and project inspection/batch tooling.
+
+See `docs/ROADMAP.md` for the detailed separation between validated, planned, and exploratory capabilities.
+
+## Validated end-to-end workflow
 
 ```text
 WAV
-  -> mpctk generate
+  -> CLI or GUI/macOS app
   -> musical specification
   -> sample injection
   -> pad-bank generation
@@ -153,7 +203,4 @@ WAV
   -> MPC Sample
 ```
 
-The complete workflow has been tested successfully on physical hardware.
-
-See `docs/ROADMAP.md` for validated foundations, planned work, and exploratory
-ideas.
+The complete generation path has been tested successfully on physical MPC Sample hardware.
